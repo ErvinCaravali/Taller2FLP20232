@@ -5,6 +5,17 @@
  Ervin Caravali Ibarra:1925648
 |#
 
+<expr> ::= (fnc <var> <clausulas>)
+<var> ::= <num>
+<clausulas> ::= ' ( <clausula-list> )
+<clausula-list> ::= <clausula> <clausula-list> | ε
+<clausula> ::= ( <literal-list> )
+<literal-list> ::= <literal> <literal-list> | ε
+<literal> ::= <num> | -<num>
+<num> ::= [0-9]+
+
+
+
 ;;Implementación basada en listas
 (define (fnc var clausulas)
 (list 'fnc var clausulas))
