@@ -95,7 +95,51 @@
 (define instance2 '(FNC 3 ((-1 2) (3) (-2 4))))
 (define instance3 '(FNC 2 ((1 -2) (-1 -2) (2))))
 
+
+
+
 ;;Parseo de las instancias SAT
 (define parsed-instance1 (parse-fnc instance1))
 (define parsed-instance2 (parse-fnc instance2))
 (define parsed-instance3 (parse-fnc instance3))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; Definición del datatype para <expr>
+(define-datatype expr expr?
+  (fnc (var : var?) (clausulas : clausulas?)))
+
+;; Definición del datatype para <var>
+(define-datatype var var?
+  (var (num : num?)))
+
+;; Definición del datatype para <clausulas>
+(define-datatype clausulas clausulas?
+  (clausulas (clausula-list : clausula-list?)))
+
+;; Definición del datatype para <clausula-list>
+(define-datatype clausula-list clausula-list?
+  (cons-clausula (clausula : clausula?) (clausula-list : clausula-list?))
+  (empty-clausula-list))
+
+;; Definición del datatype para <clausula>
+(define-datatype clausula clausula?
+  (clausula (literal-list : literal-list?)))
+
+;; Definición del datatype para <literal-list>
+(define-datatype literal-list literal-list?
+  (cons-literal (literal : literal?) (literal-list : literal-list?))
+  (empty-literal-list))
+
+;; Definición del datatype para <literal>
+(define-datatype literal literal?
+  (num (num : num?))   ; Representa un número entero.
+  (neg-num (num : num?))   ; Representa un número entero negativo.
+
+;; Definición del datatype para <num>
+(define-datatype num num?
+  (num (val : integer?)))   ; Representa un número entero.
+
+
