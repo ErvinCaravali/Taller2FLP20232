@@ -5,3 +5,73 @@
  Jhoimar Silva Torres:2177167
  Ervin Caravali Ibarra:1925648
 |#
+(define (PARSEBNF input)
+  (cond
+    [(and (list? input) (eq? (car input) 'FNC))
+     (make-fnc (cadr input) (PARSEVAR (caddr input)) (PARSECLAUSULAS (cadddr input)))]
+    [else
+     ("Formato de entrada incorrecto")]))
+
+(define (PARSEVAR var)
+  var)
+
+(define (PARSECLAUSULAS clausulas)
+  (cond
+    [(and (list? clausulas) (eq? (car clausulas) 'clause-list))
+     (make-clausula-list (PARSECLAUSULA (cadr clausulas)) (PARSECLAUSULAS (caddr clausulas)))]
+    [(eq? clausulas 'empty-clausula-list)
+     (make-empty-clausula-list)]
+    [else
+     ("Formato de entrada incorrecto")]))
+
+
+(define (PARSECLAUSULA clausula)
+  (cond
+    [(and (list? clausula) (eq? (car clausula) 'literal-list))
+     (make-literal-list (PARSELITERAL (cadr clausula)) (PARSECLAUSULA (caddr clausula)))]
+    [(eq? clausula 'empty-literal-list)
+     (make-empty-literal-list)]
+    [else
+     ("Formato de entrada incorrecto")]))
+
+
+(define (PARSELITERAL literal)
+  (cond
+    [(and (list? literal) (eq? (car literal) 'num))
+     (make-num (cadr literal))]
+    [(and (list? literal) (eq? (car literal) 'neg-num))
+     (make-neg-num (cadr literal))]
+    [else
+     ("Formato de entrada incorrecto")]))
+
+
+(define (UNPARSEBNF tree)
+  (match tree
+    [(struct fnc (var clausulas))
+     (list 'FNC var (UNPARSEVAR clausulas))]))
+
+(define (UNPARSEVAR clausulas)
+  (list 'clause-list (UNPARSECLAUSULAS clausulas)))
+
+
+(define (UNPARSECLAUSULAS clausulas)
+  (match clausulas
+    [(struct cons-clausula (clausula rest))
+     (list 'cons-clausula (UNPARSECLAUSULA clausula) (UNPARSECLAUSULAS rest))]
+    [(struct empty-clausula-list ())
+     'empty-clausula-list]))
+
+(define (UNPARSECLAUSULA clausula)
+  (match clausula
+    [(struct cons-literal (literal rest))
+     (list 'cons-literal (UNPARSELITERAL literal) (UNPARSECLAUSULA rest))]
+    [(struct empty-literal-list ())
+     'empty-literal-list]))
+
+(define (UNPARSELITERAL literal)
+  (match literal
+    [(struct num (val))
+     (list 'num val)]
+    [(struct neg-num (val))
+     (list 'neg-num val)]))
+
