@@ -1,4 +1,5 @@
 #lang eopl
+(require "ejercicio1.rkt")
 #|
  Estiven Andrés Martínez Granados:2179687
  Jhoimar Silva Torres:2177167
