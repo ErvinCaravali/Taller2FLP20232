@@ -2,12 +2,6 @@
 #lang eopl
 (require "ejercicio1.rkt")
 
-#|
-Estiven Andrés Martínez Granados:2179687
-Jhoimar Silva Torres:2177167
-Ervin Caravalí Ibarra:1925648
-|#
-
 ;; Función que parsea una lista de cláusulas
 (define (parse-clausula-list clausula-list)
   (cond
