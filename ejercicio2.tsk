@@ -1,77 +1,85 @@
+
 #lang eopl
 (require "ejercicio1.rkt")
-#|
- Estiven Andrés Martínez Granados:2179687
- Jhoimar Silva Torres:2177167
- Ervin Caravali Ibarra:1925648
-|#
+
+;; Función que parsea una lista de cláusulas
+(define (parse-clausula-list clausula-list)
+  (cond
+    [(null? clausula-list) '()] ; Si la lista está vacía, devuelve una lista vacía
+    [else (cons (parse-clausula (car clausula-list)) (parse-clausula-list (cdr clausula-list)))]))
+
+;; Función que parsea una cláusula
+(define (parse-clausula clausula)
+  (list 'clause (parse-literal-list clausula)))
+
+;; Función que parsea una lista de literales
+(define (parse-literal-list literal-list)
+  (cond
+    [(null? literal-list) '()] ; Si la lista está vacía, devuelve una lista vacía
+    [else (cons (parse-literal (car literal-list)) (parse-literal-list (cdr literal-list)))])) 
+
+;; Función que parsea un literal
+(define (parse-literal literal)
+  (if (< literal 0) ; Si el literal es negativo
+      (list 'var (list '- literal)) ; Devuelve una lista con el átomo 'var y el literal negativo
+      (list 'var literal))) ; Si no es negativo, devuelve una lista con el átomo 'var y el literal
+
+;; Función que parsea una expresión FNC
+(define (parse-fnc-list expr)
+  (list 'fnc (parse-var (cadr expr)) (if (list? (caddr expr)) 
+                                        (parse-clausula-list (caddr expr))
+                                        (parse-clausula (caddr expr)))))
+
+;; Función que parsea una variable
+(define (parse-var var)
+  (list 'var var)) ; Devuelve una lista con el átomo 'var y el valor de la variable
+
+;; Función que inicia el proceso de parseo de una expresión FNC
+(define (parse-fnc expr)
+  (parse-fnc-list (cdr expr))) ; Llama a parse-fnc-list con el resto de la expresión como argumento
+
+;; Función principal para parsear la entrada BNF
 (define (PARSEBNF input)
-  (cond
-    [(and (list? input) (eq? (car input) 'FNC))
-     (make-fnc (cadr input) (PARSEVAR (caddr input)) (PARSECLAUSULAS (cadddr input)))]
-    [else
-     ("Formato de entrada incorrecto")]))
+  (if (equal? (car input) '<expr>) ; Si el primer elemento es '<expr>
+      (parse-fnc (cdr input)) ; Llama a parse-fnc con el resto de la entrada como argumento
+      "Formato de entrada incorrecto")) ; Si no, devuelve un mensaje de error.
 
-(define (PARSEVAR var)
-  var)
+;; Función que convierte una lista de cláusulas a su representación concreta
+(define (unparse-clausula-list clausula-list)
+  (if (null? clausula-list)
+      '() ; Si la lista está vacía, devuelve una lista vacía
+      (cons (unparse-clausula (car clausula-list)) (unparse-clausula-list (cdr clausula-list)))))
 
-(define (PARSECLAUSULAS clausulas)
-  (cond
-    [(and (list? clausulas) (eq? (car clausulas) 'clause-list))
-     (make-clausula-list (PARSECLAUSULA (cadr clausulas)) (PARSECLAUSULAS (caddr clausulas)))]
-    [(eq? clausulas 'empty-clausula-list)
-     (make-empty-clausula-list)]
-    [else
-     ("Formato de entrada incorrecto")]))
+;; Función que convierte una cláusula a su representación concreta
+(define (unparse-clausula clausula)
+  (list 'clause (unparse-literal-list (cdr clausula))))
 
+;; Función que convierte una lista de literales a su representación concreta
+(define (unparse-literal-list literal-list)
+  (if (null? literal-list)
+      '() ; Si la lista está vacía, devuelve una lista vacía
+      (cons (unparse-literal (car literal-list)) (unparse-literal-list (cdr literal-list)))))
 
-(define (PARSECLAUSULA clausula)
-  (cond
-    [(and (list? clausula) (eq? (car clausula) 'literal-list))
-     (make-literal-list (PARSELITERAL (cadr clausula)) (PARSECLAUSULA (caddr clausula)))]
-    [(eq? clausula 'empty-literal-list)
-     (make-empty-literal-list)]
-    [else
-     ("Formato de entrada incorrecto")]))
+;; Función que convierte un literal a su representación concreta
+(define (unparse-literal literal)
+  (if (< (cadr literal) 0) ; Si el literal es negativo
+      (list 'var (list '- (cadr literal))) ; Devuelve una lista con el átomo 'var y el literal negativo
+      (list 'var (cadr literal)))) ; Si no es negativo, devuelve una lista con el átomo 'var y el literal
 
+;; Función que convierte una expresión FNC a su representación concreta
+(define (unparse-fnc-list expr)
+  (list 'fnc (cadr expr) (unparse-clausula (caddr expr))))
 
-(define (PARSELITERAL literal)
-  (cond
-    [(and (list? literal) (eq? (car literal) 'num))
-     (make-num (cadr literal))]
-    [(and (list? literal) (eq? (car literal) 'neg-num))
-     (make-neg-num (cadr literal))]
-    [else
-     ("Formato de entrada incorrecto")]))
+;; Función que convierte una variable a su representación concreta
+(define (unparse-var var)
+  (list 'var var))
 
+;; Función principal que inicia el proceso de conversión de una expresión FNC a su representación concreta
+(define (unparse-fnc expr)
+  (unparse-fnc-list (cdr expr)))
 
-(define (UNPARSEBNF tree)
-  (match tree
-    [(struct fnc (var clausulas))
-     (list 'FNC var (UNPARSEVAR clausulas))]))
-
-(define (UNPARSEVAR clausulas)
-  (list 'clause-list (UNPARSECLAUSULAS clausulas)))
-
-
-(define (UNPARSECLAUSULAS clausulas)
-  (match clausulas
-    [(struct cons-clausula (clausula rest))
-     (list 'cons-clausula (UNPARSECLAUSULA clausula) (UNPARSECLAUSULAS rest))]
-    [(struct empty-clausula-list ())
-     'empty-clausula-list]))
-
-(define (UNPARSECLAUSULA clausula)
-  (match clausula
-    [(struct cons-literal (literal rest))
-     (list 'cons-literal (UNPARSELITERAL literal) (UNPARSECLAUSULA rest))]
-    [(struct empty-literal-list ())
-     'empty-literal-list]))
-
-(define (UNPARSELITERAL literal)
-  (match literal
-    [(struct num (val))
-     (list 'num val)]
-    [(struct neg-num (val))
-     (list 'neg-num val)]))
-
+;; Función principal para convertir una expresión BNF a su representación concreta
+(define (UNPARSEBNF expr)
+  (if (equal? (car expr) 'fnc) ; Si la expresión es una FNC
+      (unparse-fnc (cdr expr)) ; Llama a unparse-fnc con el resto de la expresión como argumento
+      "Formato de entrada incorrecto"))
